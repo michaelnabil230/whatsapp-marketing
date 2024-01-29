@@ -1,7 +1,9 @@
 import dotenv from 'dotenv';
 import assert from 'assert';
 
-dotenv.config();
+const mode = process.env.NODE_ENV ?? 'development';
+
+dotenv.config({ path: mode === 'production' ? '.env.production' : '.env' });
 
 const {
     PORT,

@@ -3,7 +3,7 @@ import vue from '@vitejs/plugin-vue';
 import dotenv from 'dotenv';
 
 export default defineConfig(({ mode }) => {
-  const envFile = dotenv.config({ path: '.env' }).parsed;
+  const envFile = dotenv.config({ path: mode === 'production' ? '.env.production' : '.env' }).parsed;
 
   return {
     plugins: [vue()],
