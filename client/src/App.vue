@@ -5,7 +5,8 @@ import IconX from "./components/icons/IconX.vue";
 import { ref } from "vue";
 import { io } from "socket.io-client";
 
-const socket = io("http://localhost:3000");
+// @ts-ignore
+const socket = io(process.env.SOCKET_SERVER);
 const loading = ref(false);
 const phone = ref("");
 const whatsappConnected = ref(false);

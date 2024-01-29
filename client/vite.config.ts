@@ -1,8 +1,15 @@
-import { defineConfig } from 'vite'
-import vue from '@vitejs/plugin-vue'
+import { defineConfig } from 'vite';
+import vue from '@vitejs/plugin-vue';
+import dotenv from 'dotenv';
 
-// https://vitejs.dev/config/
-export default defineConfig({
-  plugins: [vue()],
-  server: { proxy: { "/api": "http://localhost:3000" } }
-})
+export default defineConfig(({ mode }) => {
+  const envFile = dotenv.config({ path: '.env' }).parsed;
+
+  return {
+    plugins: [vue()],
+    server: { proxy: { '/api': envFile.SOCKET_SERVER } },
+    define: {
+      'process.env': JSON.stringify(envFile),
+    },
+  };
+});

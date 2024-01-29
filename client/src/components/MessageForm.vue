@@ -5,7 +5,7 @@ import { reactive } from "vue";
 const emit = defineEmits(["submit"]);
 
 const getInitialFormData = () => ({
-  sleep: 1,
+  sleep: 3,
   phones: "",
   message: "",
 });
@@ -40,8 +40,8 @@ const sendMessage = () => {
         name="sleep"
         id="sleep"
         placeholder="Enter sleep number as second"
-        min="1"
-        max="60"
+        min="3"
+        max="30"
         class="peer w-0 flex-auto bg-transparent px-4 py-2.5 text-base text-white placeholder:text-gray-500 focus:outline-none sm:text-[0.8125rem]/6"
       />
       <div

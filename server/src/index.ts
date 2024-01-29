@@ -1,70 +1,28 @@
-import http from "http"
-import express from "express"
-import { Server } from "socket.io"
-import { checkPhoneIsRegistered, createPhones } from "./firebase";
-import Whatsapp from "whatsapp-web.js";
-import qr2 from "qrcode";
-import sleep from "sleep-promise";
+import https from 'https'
+import express, { Request, Response } from 'express'
+import { Server } from 'socket.io'
+import * as path from 'path';
+import * as fs from 'fs';
+import config from './config';
+import { connection } from './socket';
 
-const { Client, LocalAuth } = Whatsapp;
+const expressApp = express()
+expressApp.get('/', (_: Request, response: Response) => response.send('Server is work'));
 
-const app = express()
-const server = http.createServer(app);
-const io = new Server(server, {
-    cors: {
-        origin: "http://localhost:5173"
-    }
-});
+const server = https.createServer({
+    secureOptions: 67108864,
+    key: fs.readFileSync(path.resolve(config.sslKey)),
+    cert: fs.readFileSync(path.resolve(config.sslCert)),
+}, expressApp);
 
-io.on('connection', (socket) => {
-    console.log('a user connected');
-
-    socket.on('disconnect', () => {
-        console.log('user disconnected');
-    });
-
-    socket.on('login', (phone: string) => {
-        socket.data.client = new Client({
-            authStrategy: new LocalAuth({ clientId: `session-${phone}` }),
-        });
-
-        socket.data.client.on("qr", (qrCode: string) => {
-            console.log("Qr code is ready!");
-
-            qr2.toDataURL(qrCode, (error: Error | null | undefined, url: string) => {
-                if (error) socket.emit('error', "Error occurred");
-                socket.emit('qr-ready', url);
-            });
-        });
-
-        socket.data.client.on("ready", () => {
-            console.log("Client is ready!");
-            socket.emit('whatsapp-connected');
-        });
-
-        socket.data.client.initialize();
-    });
-
-    socket.on('message', async (sleepPeriod: number, phones: string[], message: string) => {
-        for (let index = 0; index < phones.length; index++) {
-            await socket.data.client.sendMessage(phones[index] + '@c.us', message);
-            socket.emit('finished-sending', 'fished ' + (index + 1) + ' of ' + phones.length);
-            await sleep(sleepPeriod * 1000);
-        }
-
-        socket.emit('finished-sended');
-        createPhones(phones);
-    });
-});
-
+const io = new Server(server, { cors: { origin: config.origin } });
+io.on('connection', connection);
 // io.use((socket, next) => {
 //     checkPhoneIsRegistered('').then(() => {
 //         next();
 //     }).catch(() => {
-//         next(new Error("invalid"));
+//         next(new Error('Invalid'));
 //     })
 // });
 
-server.listen(3000, () => {
-    console.log('Server started and listening on *:3000');
-});
+server.listen(config.port, () => console.log('Server started and listening on *:' + config.port));
